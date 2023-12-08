@@ -1,0 +1,88 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>io.github.xyw10000</groupId>
+    <artifactId>sensitive-data</artifactId>
+    <packaging>pom</packaging>
+    <version>1.0-SNAPSHOT</version>
+    <modules>
+        <module>mybatis-encrypt-spring-boot-starter</module>
+    </modules>
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>sensitive data</description>
+    <url>https://github.com/xyw10000/sensitive-data</url>
+    <!--开源协议...-->
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <name>One</name>
+            <email>xyw10000@163.com</email>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <timezone>+8</timezone>
+        </developer>
+    </developers>
+
+    <scm>
+        <url>https://github.com/xyw10000/sensitive-data</url>
+        <connection>https://github.com/xyw10000/sensitive-data.git</connection>
+    </scm>
+    <properties>
+        <java.version>8</java.version>
+        <maven.compiler.target>8</maven.compiler.target>
+        <maven.compiler.source>8</maven.compiler.source>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <spring-boot.version>2.7.8</spring-boot.version>
+        <org.projectlombok.version>1.16.20</org.projectlombok.version>
+        <org.slf4j.slf4j-api.version>1.7.25</org.slf4j.slf4j-api.version>
+        <org.mybatis.version>3.5.6</org.mybatis.version>
+        <org.mybatis-spring.version>2.0.6</org.mybatis-spring.version>
+        <com.google.guava.version>20.0</com.google.guava.version>
+        <com.alibaba.fastjson.version>1.2.69</com.alibaba.fastjson.version>
+        <org.apache.commons.commons-lang3.version>3.11</org.apache.commons.commons-lang3.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${org.slf4j.slf4j-api.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+            <version>${spring-boot.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+            <optional>true</optional>
+            <version>${spring-boot.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${org.projectlombok.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${com.google.guava.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${org.apache.commons.commons-lang3.version}</version>
+        </dependency>
+    </dependencies>
+</project>
+
