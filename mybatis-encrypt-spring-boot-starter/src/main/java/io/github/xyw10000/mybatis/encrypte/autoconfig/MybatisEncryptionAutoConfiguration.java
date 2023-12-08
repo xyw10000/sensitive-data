@@ -26,8 +26,17 @@ public class MybatisEncryptionAutoConfiguration {
                                                          MybatisEncrypteConfig mybatisEncrypteConfig) {
         EncryptionInterceptor encryptionInterceptor = new EncryptionInterceptor();
         Properties properties = new Properties();
-        properties.setProperty("encryptKey", mybatisEncrypteConfig.getEncryptKey());
-        properties.setProperty("encryptionService", mybatisEncrypteConfig.getEncryptionService());
+        if (StringUtils.isNotBlank(mybatisEncrypteConfig.getEncryptKey())) {
+            properties.setProperty("encryptKey", mybatisEncrypteConfig.getEncryptKey());
+        }
+
+        if (StringUtils.isNotBlank(mybatisEncrypteConfig.getEncryptionService())) {
+            properties.setProperty("encryptionService", mybatisEncrypteConfig.getEncryptionService());
+        }
+
+        if (StringUtils.isNotBlank(mybatisEncrypteConfig.getExampleClassConfig())) {
+            properties.setProperty("exampleClassConfigMap", mybatisEncrypteConfig.getExampleClassConfig());
+        }
         encryptionInterceptor.setProperties(properties);
         boolean isAll = StringUtils.isBlank(mybatisEncrypteConfig.getSqlSessionFactoryIds());
         for (Map.Entry<String, SqlSessionFactory> m : sqlSessionFactoryMap.entrySet()) {

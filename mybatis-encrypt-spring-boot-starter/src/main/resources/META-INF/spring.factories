@@ -1,0 +1,1 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=io.github.xyw10000.mybatis.encrypte.autoconfig.MybatisEncryptionAutoConfiguration

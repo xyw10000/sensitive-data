@@ -1,17 +1,25 @@
 package io.github.xyw10000.mybatis.encrypte.interceptor;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.github.one.mybatis.encrypte.annotation.EnableEncrypt;
-import com.github.one.mybatis.encrypte.annotation.EncryptField;
-import com.github.one.mybatis.encrypte.spi.DefaultEncryptionService;
-import com.github.one.mybatis.encrypte.spi.IEncryptionService;
-import com.github.one.mybatis.encrypte.util.EncryptHelper;
-import com.github.one.mybatis.encrypte.util.SpringContextUtil;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
+import io.github.xyw10000.mybatis.encrypte.annotation.EnableEncrypt;
+import io.github.xyw10000.mybatis.encrypte.annotation.EncryptField;
+import io.github.xyw10000.mybatis.encrypte.spi.DefaultEncryptionService;
+import io.github.xyw10000.mybatis.encrypte.spi.IEncryptionService;
+import io.github.xyw10000.mybatis.encrypte.util.EncryptHelper;
+import io.github.xyw10000.mybatis.encrypte.util.SpringContextUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.binding.MapperMethod;
@@ -19,17 +27,23 @@ import org.apache.ibatis.cache.CacheKey;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
-import org.apache.ibatis.plugin.*;
+import org.apache.ibatis.plugin.Interceptor;
+import org.apache.ibatis.plugin.Intercepts;
+import org.apache.ibatis.plugin.Invocation;
+import org.apache.ibatis.plugin.Plugin;
+import org.apache.ibatis.plugin.Signature;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 import org.springframework.util.CollectionUtils;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+
+
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author one.xu
@@ -105,9 +119,6 @@ public class EncryptionInterceptor implements Interceptor {
             encryptKey = SpringContextUtil.getApplicationContext().getEnvironment().getProperty(encryptKey.replace("${", "").replace("}", ""));
         }
         String encryptionService = properties.getProperty("encryptionService", DefaultEncryptionService.class.getName());
-        if (encryptionService.startsWith("${") && encryptionService.endsWith("}")) {
-            encryptionService = SpringContextUtil.getApplicationContext().getEnvironment().getProperty(encryptionService.replace("${", "").replace("}", ""));
-        }
         Class<?> cls = Class.forName(encryptionService);
         if (!IEncryptionService.class.isAssignableFrom(cls)) {
             throw new RuntimeException("encryptionService 没有实现IEncryptionService接口");
@@ -181,6 +192,9 @@ public class EncryptionInterceptor implements Interceptor {
                 return new HashSet<>();
             }
             reallySingleObj = resultList.get(0);
+            if(reallySingleObj == null) {//存在查询结果，[null]
+                return new HashSet<>();
+            }
         }
         //提取注解字段
         Set<String> decryptFields = this.encryptHelper.getEncryptField(reallySingleObj);
@@ -208,12 +222,13 @@ public class EncryptionInterceptor implements Interceptor {
         if (method.getAnnotation(EnableEncrypt.class) == null && !hasExampleOrResult(newParameter)) {
             return parameter;
         }
-        log.debug("开始修改方法:{}入参", mappedStatement.getId());
+        log.debug(isEncrypt?"加密参数:{}":"解密参数:{}", mappedStatement.getId());
         //扫描方法入参注解
         Map<String, Set<String>> paramAnnotation = searchParamAnnotation(method);
         //多个参数场景
         if (newParameter instanceof MapperMethod.ParamMap) {
             Map<String, Object> map = ((Map<String, Object>) newParameter);
+            Set<Object> done = Sets.newConcurrentHashSet();
             for (Map.Entry<String, Object> e : map.entrySet()) {
                 Object value = e.getValue();
                 if (value == null) {
@@ -223,6 +238,10 @@ public class EncryptionInterceptor implements Interceptor {
                 if (!paramAnnotation.containsKey(e.getKey()) && !hasExampleOrResult(value)) {
                     continue;
                 }
+                if(done.contains(value)) {
+                    continue;
+                }
+                done.add(value);
                 if (value instanceof Map) {
                     encryptHelper.execute(value, paramAnnotation.get(e.getKey()), isEncrypt);
                 } else if (value instanceof List) {
@@ -326,7 +345,13 @@ public class EncryptionInterceptor implements Interceptor {
         for (Object oj : oredCriterias) {
             method = oj.getClass().getMethod("getCriteria");
             for (Object o : (List) method.invoke(oj)) {
-                Field f = o.getClass().getDeclaredField("condition");
+                Field f = o.getClass().getDeclaredField("noValue");
+                f.setAccessible(true);
+                //没有值 is not null 这种
+                if((boolean)f.get(o)){
+                    continue;
+                }
+                f = o.getClass().getDeclaredField("condition");
                 f.setAccessible(true);
                 Object v = f.get(o);
                 aa:
